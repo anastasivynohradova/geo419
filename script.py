@@ -6,4 +6,5 @@ Created on Fri Apr 30 21:45:52 2021
 """
 print('Welcome to our module')
 print('GEO 419')
-print ('first')
+print('first')
+print('second')
