@@ -6,4 +6,3 @@ Created on Fri Apr 30 21:45:52 2021
 """
 print ("Welcome to our modul")
 print ('GEO 419')
-print ('first try Pycharm')
