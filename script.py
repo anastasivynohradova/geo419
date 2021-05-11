@@ -4,7 +4,13 @@ Created on Fri Apr 30 21:45:52 2021
 
 @author: Besitzer
 """
-print('Welcome to our module')
-print('GEO 419')
-print('first')
-print('second')
+import io
+
+import requests
+import zipfile36 as zipfile
+
+r = requests.get("https://upload.uni-jena.de/data/605dfe08b61aa9.92877595/GEO419_Testdatensatz.zip")
+z = zipfile.ZipFile(io.BytesIO(r.content))
+print("Geben Sie den Pfad für den Ordner ein:")
+path = input()
+z.extractall(path)
