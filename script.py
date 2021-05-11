@@ -8,9 +8,11 @@ import io
 
 import requests
 import zipfile36 as zipfile
-
+print("Welcome!")
 r = requests.get("https://upload.uni-jena.de/data/605dfe08b61aa9.92877595/GEO419_Testdatensatz.zip")
 z = zipfile.ZipFile(io.BytesIO(r.content))
 print("Geben Sie den Pfad für den Ordner ein:")
 path = input()
 z.extractall(path)
+
+
