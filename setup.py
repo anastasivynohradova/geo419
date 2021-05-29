@@ -1,4 +1,3 @@
-import os
 from setuptools import setup
 
 with open('requirements.txt') as f:
@@ -12,6 +11,6 @@ setup(
     license='',
     author='Manuel Rauch, Anastasiia Vynohradova',
     author_email='manuel.rauch@uni-jena.de, anastasiia.vynohradova@uni-jena.de',
-    description=''
-    install_requires = required,
+    description='',
+    install_requires=required,
 )
