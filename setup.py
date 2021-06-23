@@ -1,16 +1,17 @@
-from setuptools import setup
+import setuptools
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
+with open('requirements.txt', "r") as f:
+    requirements = f.readlines()
 
-setup(
-    name='Hausarbeit',
-    version='v.1.0',
-    packages=[''],
-    url='',
+__version__ = '1.0.0'
+
+setuptools.setup(
+    name='script',
+    version='__version__',
     license='',
     author='Manuel Rauch, Anastasiia Vynohradova',
     author_email='manuel.rauch@uni-jena.de, anastasiia.vynohradova@uni-jena.de',
-    description='',
-    install_requires=required,
+    url="https://github.com/anastasivynohradova/geo419/",
+    packages=setuptools.find_packages(),
+    install_requires=[req for req in requirements if req[:2] != "# "],
 )
