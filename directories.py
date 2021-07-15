@@ -8,13 +8,11 @@ Created on Fri Apr 30 21:45:52 2021
 import os
 import requests
 import zipfile36 as zipfile
-import io
+#Import der GDAL-Bibliothek als gdal
 from osgeo import gdal
 import numpy as np
 from matplotlib import pyplot as plt
-from PIL import Image
-#from cv2 import cv2
-from skimage import io, exposure, data
+from skimage import io, exposure
 
 print("Willkommen!")
 
@@ -62,29 +60,34 @@ def script():
                 else:
                     print('tif does not exist, please restart the programm')
 
-
+    # Definierung einer Funktion zum Öffnen des Bildes
+    # und logarithmische Skalierung des Bildes
     def imageread():
+        # das Bilds als read only-Bild öffnen
         ds = gdal.Open("S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif")
-        #image = np.array(Image.open('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'))
+        # Raster in ein Numpy-Array laden
         image = np.array(ds.GetRasterBand(1).ReadAsArray())
-        # log skalierung
+        # logarithmisch skalieren
         image[image != 0] = (np.log10(image[image > 0])) * 10
         # 0 Werte als nAn darstellen
         image[image == 0] = np.nan
         return image
 
-
-    def mask(image):
-        # Use a mask to mark the NaNs
-        image_masked = np.ma.masked_not_equal(image, np.nan)
-        percentiles = np.percentile(image_masked, (2, 98))
-        scaled = exposure.rescale_intensity(image_masked,
+    # Definierung einer Funktion zur weiteren Skalierung der Daten, bzw. Kontraststreckung
+    def imagescale(image):
+        # Perzentile für Kontraststreckung definieren
+        # und ignorieren nAn Werte
+        percentiles = np.nanpercentile(image, (2, 98))
+        # Strecken der Intensitätsstuffen, die innerhalb des 2. und 98. Perzentils liegen
+        scaled = exposure.rescale_intensity(image,
                                             in_range=tuple(percentiles))
         return scaled
 
-
+    # Definierung einer Funktion zur Bildvisualisierung
     def imagevisualize(image_masked):
+        # Schreiben des neu berechneten Bildes in eine neue Datei
         np.savetxt('out', image_masked, delimiter=',')
+        # Visualisierung des logarithmisch skalierten Bilds
         plt.imshow(image_masked, interpolation='nearest', cmap='gray')
         plt.show()
 
@@ -92,8 +95,8 @@ def script():
         downloadunpack = downtiff()
         tifcheck = tifcheck()
         image = imageread()
-        image_masked = mask(image)
-        image_combined = imagevisualize(image_masked)
+        image_scaled = imagescale(image)
+        image_combined = imagevisualize(image_scaled)
 
 if __name__ == "__main__":
     script = script()
