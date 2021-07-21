@@ -7,13 +7,13 @@ Created on Fri Apr 30 21:45:52 2021
 import io
 import requests
 import zipfile36 as zipfile
-from osgeo import gdal
+#from osgeo import gdal
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-from cv2 import cv2
+#from cv2 import cv2
 from skimage import io, exposure, data
-import matplotlib.cm as cm
+#import matplotlib.cm as cm
 
 print("Willkommen!")
 

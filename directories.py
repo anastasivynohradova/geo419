@@ -14,6 +14,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from skimage import exposure
 
+import tifffile as tf
+
 print("Willkommen!")
 
 
@@ -33,7 +35,7 @@ def script():
             print("Zip file File exists")
         elif not os.path.isfile('GEO419_Testdatensatz'):
             print('Download starts')
-            zipurl = 'https://upload.uni-jena.de/data/605dfe08b61aa9.92877595/GEO419_Testdatensatz.zip'
+            zipurl = 'https://upload.uni-jena.de/data/60f80f58da71c9.16123293/GEO419_Testdatensatz.zip'
             resp = requests.get(zipurl)
 
             zname = "GEO419_Testdatensatz"
@@ -94,6 +96,12 @@ def script():
         #np.savetxt('out', image_scaled, delimiter=',')
         # Visualisierung des logarithmisch skalierten Bilds
         show(image_scaled, cmap='gray')
+        tf.imwrite('Scaled.tif', image_scaled)
+        src2 = rasterio.open('Scaled.tif')
+
+
+
+
 
     if __name__ == "__main__":
         downtiff()
@@ -103,6 +111,10 @@ def script():
         image_int = rescale_intensity(log_image)
         imagevisualize(image_int)
 
+
 if __name__ == "__main__":
     script = script()
+
+
+
 
