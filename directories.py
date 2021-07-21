@@ -97,8 +97,37 @@ def script():
         # Visualisierung des logarithmisch skalierten Bilds
         show(image_scaled, cmap='gray')
         tf.imwrite('Scaled.tif', image_scaled)
-        src2 = rasterio.open('Scaled.tif')
+        return image_scaled
 
+    import rioxarray
+
+    rds = rioxarray.open_rasterio('GEO_ex_folder/Scaled.tif')
+    rds_32632 = rds.rio.write.crs("EPSG:32632")
+    rds_32632.rio.to_raster("GEO_ex_folder/Proj.tif")
+
+
+
+    # from contextlib import contextmanager
+    # import rasterio
+    #
+    # # use context manager so DatasetReader and MemoryFile get cleaned up automatically
+    # @contextmanager
+    # def mem_raster(image_scaled, image):
+    #     profile = image.profile
+    #     profile.update(driver='GTiff', dtype=image_scaled.dtype)
+    #
+    #     with rasterio.MemoryFile() as memfile:
+    #         with memfile.open(**profile) as dataset:  # Open as DatasetWriter
+    #             dataset.write(image_scaled)
+    #
+    #         with memfile.open() as dataset:  # Reopen as DatasetReader
+    #             yield dataset  # Note yield not return
+    #
+    # with rasterio.open('Scaled.tif') as src:
+    #     array = src.read() / 2.0
+    #     with mem_raster(array, src) as mem:
+    #         print(mem.dtypes, mem.crs, mem.bounds)
+    #         print(repr(mem))
 
 
 
@@ -112,9 +141,6 @@ def script():
         imagevisualize(image_int)
 
 
+
 if __name__ == "__main__":
     script = script()
-
-
-
-
