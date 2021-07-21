@@ -8,11 +8,11 @@ Created on Fri Apr 30 21:45:52 2021
 import os
 import requests
 import zipfile36 as zipfile
-#Import der GDAL-Bibliothek als gdal
-from osgeo import gdal
+import rasterio
+from rasterio.plot import show
 import numpy as np
 from matplotlib import pyplot as plt
-from skimage import io, exposure
+from skimage import exposure
 
 print("Willkommen!")
 
@@ -49,24 +49,29 @@ def script():
             zfile.extractall()
             print('Zip unpacked')
 
+
     def tifcheck():
-        for root, dirs, files in os.walk('GEO_ex_folder'):
-            # select file name
+         for root, dirs, files in os.walk('GEO_ex_folder'):
+             # select file name
             for file in files:
                 # check the extension of files
-                if file.endswith('.tif'):
-                    # print whole path of files
-                    print(os.path.join(root, file))
-                else:
-                    print('tif does not exist, please restart the programm')
+                 if file.endswith('.tif'):
+                     # print whole path of files
+                     print(os.path.join(root, file))
+                 else:
+                     print('tif does not exist, please restart the programm')
 
     # Definierung einer Funktion zum Öffnen des Bildes
     # und logarithmische Skalierung des Bildes
     def imageread():
         # das Bilds als read only-Bild öffnen
-        ds = gdal.Open("S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif")
-        # Raster in ein Numpy-Array laden
-        image = np.array(ds.GetRasterBand(1).ReadAsArray())
+        with rasterio.open('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif') as src:
+            image = src.read()
+        #image =  rasterio.open('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif', 'w')
+        return image
+
+    def logscale(image):
+        #image = np.array(image.GetRasterBand(1).ReadAsArray())
         # logarithmisch skalieren
         image[image != 0] = (np.log10(image[image > 0])) * 10
         # 0 Werte als nAn darstellen
@@ -74,7 +79,7 @@ def script():
         return image
 
     # Definierung einer Funktion zur weiteren Skalierung der Daten, bzw. Kontraststreckung
-    def imagescale(image):
+    def rescale_intensity(image):
         # Perzentile für Kontraststreckung definieren
         # und ignorieren nAn Werte
         percentiles = np.nanpercentile(image, (2, 98))
@@ -84,19 +89,20 @@ def script():
         return scaled
 
     # Definierung einer Funktion zur Bildvisualisierung
-    def imagevisualize(image_masked):
+    def imagevisualize(image_scaled):
         # Schreiben des neu berechneten Bildes in eine neue Datei
-        np.savetxt('out', image_masked, delimiter=',')
+        #np.savetxt('out', image_scaled, delimiter=',')
         # Visualisierung des logarithmisch skalierten Bilds
-        plt.imshow(image_masked, interpolation='nearest', cmap='gray')
-        plt.show()
+        show(image_scaled, cmap='gray')
 
     if __name__ == "__main__":
-        downloadunpack = downtiff()
-        tifcheck = tifcheck()
+        downtiff()
+        tifcheck()
         image = imageread()
-        image_scaled = imagescale(image)
-        image_combined = imagevisualize(image_scaled)
+        print(image)
+        log_image = logscale(image)
+        image_int = rescale_intensity(log_image)
+        imagevisualize(image_int)
 
 if __name__ == "__main__":
     script = script()
