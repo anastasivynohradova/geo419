@@ -102,12 +102,18 @@ def script():
     import rioxarray
 
     rds = rioxarray.open_rasterio('GEO_ex_folder/Scaled.tif')
-    rds_32632 = rds.rio.write.crs("EPSG:32632")
+    rds_32632 = rds.rio.write_crs("EPSG:32632")
     rds_32632.rio.to_raster("GEO_ex_folder/Proj.tif")
 
+    # def georeferencing():
+    #      profile = {'driver': 'GTiff', 'height': 2000, 'width': 2000, 'count': 1, 'dtype': rasterio.uint8}
+    #     with rasterio.open('Proj.tif', 'w', crs='EPSG:32632', **profile) as dst:
+    #         profile = dst.write()
+    #     return profile
 
 
-    # from contextlib import contextmanager
+
+        # from contextlib import contextmanager
     # import rasterio
     #
     # # use context manager so DatasetReader and MemoryFile get cleaned up automatically
@@ -139,6 +145,7 @@ def script():
         log_image = logscale(image)
         image_int = rescale_intensity(log_image)
         imagevisualize(image_int)
+        georeferencing()
 
 
 
