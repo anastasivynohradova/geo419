@@ -99,7 +99,6 @@ def script():
         downtiff()
         tifcheck()
         image = imageread()
-        print(image)
         log_image = logscale(image)
         image_int = rescale_intensity(log_image)
         imagevisualize(image_int)
