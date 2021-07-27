@@ -61,68 +61,63 @@ def script():
                     print('tif does not exist, please restart the programm')
 
     # Definierung einer Funktion zum Öffnen des Bildes
-    # und logarithmische Skalierung des Bildes
     def image_read():
-        # das Bild als read only-Bild öffnen
-        # image = rasterio.open('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif')
-        # with rasterio.open('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif') as src:
-        #    image = src.read()
         image = gdal.Open("S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif", gdal.GA_Update)
         return image
 
+    # Logarithmische Skalierung des Bildes
     def log_scale(image):
+        # lesen das Bild als numpy Array
         image_array = image.GetRasterBand(1).ReadAsArray()
-        # logarithmisch skalieren
+        # logarithmisch skalieren die Werte >0
         image_array[image_array != 0] = (np.log10(image_array[image_array > 0])) * 10
         # 0 Werte als nAn darstellen
         image_array[image_array == 0] = np.nan
-        # image = show(image_array, cmap='Greys_r')
         return image_array
 
     # Definierung einer Funktion zur weiteren Skalierung der Daten, bzw. Kontraststreckung
-    def rescale_intensity(image):
+    def rescale_intensity(log_image):
+        # berechnen min und max Werte im Array
+        min = np.nanmin(log_image)
+        max = np.nanmax(log_image)
         # Perzentile für Kontraststreckung definieren
         # und ignorieren nAn Werte
-        min = np.nanmin(image)
-        max = np.nanmax(image)
-        percentiles = np.nanpercentile(image, (2, 98))
+        percentiles = np.nanpercentile(log_image, (2, 98))
         # Strecken der Intensitätsstuffen, die innerhalb des 2. und 98. Perzentils liegen
-        scaled = exposure.rescale_intensity(image,
+        scaled = exposure.rescale_intensity(log_image,
                                             in_range=tuple(percentiles),
                                             out_range=(min, max))
-        # image = show(scaled, cmap='Greys_r')
         return scaled
 
+    # Definierung einer Funktion zum Screiben des neu berechneten Array als raster Bild
     def image_save():
-        # Now to save your modifications into the same band you can do the following
-        # This is writing the updated  array into the rasterband of the tif.
-        #image.GetRasterBand(1).WriteArray(image_int)
-        # You can create a copy of the existing image and save the  array into it like this
+        # Erstellen der neuen Datei im tiff Format
         driver = gdal.GetDriverByName('Gtiff')
-        dst_ds = driver.CreateCopy("logscaled.tif", image, 1)
-        dst_ds.GetRasterBand(1).WriteArray(image_int)
-        dst_ds.FlushCache()
-        del dst_ds
+        # Kopieren der Geoinformation vom input Bild in die neue raster Datei
+        output_image = driver.CreateCopy("logscaled.tif", image, 1)
+        # Kopieren des numpy Arrays in die neue raster Datei
+        output_image.GetRasterBand(1).WriteArray(image_int)
+        #output_image.FlushCache()
+        del output_image
 
     # Definierung einer Funktion zur Bildvisualisierung
     def image_visualize():
-        # Schreiben des neu berechneten Bildes in eine neue Datei
-        src = rasterio.open("..\GEO_ex_folder\logscaled.tif")
-
+        # Öffnen des neu berechneten Bildes mit dem Packet rasterio
+        new_image = rasterio.open("..\GEO_ex_folder\logscaled.tif")
+        # Erstellen einer Figur und eines Subplots
         fig, ax = plt.subplots(figsize=(7, 4))
-
-        # use imshow so that we have something to map the colorbar to
-        image_hidden = ax.imshow(src.read(1),
+        # imshow verwenden um den Colorbar zuordnen zu können
+        # das erste Band der Datei kann mit .read(1) gelesen werden
+        image_hidden = ax.imshow(new_image.read(1),
                                  cmap='Greys_r')
-
-        # plot on the same axis with rio.plot.show
-        image = show(src.read(1),
-                     transform=src.transform,
-                     ax=ax,
-                     cmap='Greys_r')
-
-        # add colorbar using the now hidden image
+        # Plotten auf der gleichen Achse mit rasterio.plot.show
+        show(new_image.read(1),
+                transform=new_image.transform,
+                ax=ax,
+                cmap='Greys_r')
+        # Colorbar unter Verwendung des jetzt ausgeblendeten Bildes hinzufügen
         fig.colorbar(image_hidden, ax=ax)
+        # Darstellung des Bildes mit Colorbar in einem Fenster
         plt.show()
 
     if __name__ == "__main__":
