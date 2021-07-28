@@ -14,8 +14,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from skimage import exposure
 from osgeo import gdal
+from matplotlib.ticker import ScalarFormatter
 
-print("Willkommen!")
+print("Welcome!")
 
 
 def script():
@@ -108,8 +109,11 @@ def script():
         fig, ax = plt.subplots(figsize=(7, 4))
         # imshow verwenden um den Colorbar zuordnen zu können
         # das erste Band der Datei kann mit .read(1) gelesen werden
+        #ax.plot(range(400000, 600000, 50000), range(517500, 535000, 2500))
+        ax.ticklabel_format(useOffset=False)
         image_hidden = ax.imshow(new_image.read(1),
                                  cmap='Greys_r')
+        fig.legend(title='dB', loc='upper right', bbox_to_anchor=(0.83, 0.98), frameon=False)
         # Plotten auf der gleichen Achse mit rasterio.plot.show
         show(new_image.read(1),
                 transform=new_image.transform,
