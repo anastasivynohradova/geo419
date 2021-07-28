@@ -51,15 +51,12 @@ def script():
             print('Zip unpacked')
 
     def tifcheck():
-        for root, dirs, files in os.walk('GEO_ex_folder'):
-            # select file name
-            for file in files:
-                # check the extension of files
-                if file.endswith('.tif'):
-                    # print whole path of files
-                    print(os.path.join(root, file))
-                else:
-                    print('tif does not exist, please restart the programm')
+        for file in os.listdir("GEO_ex_folder"):
+            if file.endswith(".tif"):
+                print(os.path.join("GEO_ex_folder", file))
+            elif not os.path.isfile('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'):
+                print('tif does not exist, please restart the programm')
+
 
     # Definierung einer Funktion zum Öffnen des Bildes
     def image_read():
