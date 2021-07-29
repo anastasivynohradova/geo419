@@ -1,18 +1,7 @@
 import setuptools
-import os
-import sys
 
 with open('requirements.txt', "r") as f:
     requirements = f.readlines()
-
-directory = os.path.abspath(os.path.dirname(__file__))
-if sys.version_info >= (3, 0):
-    with open(os.path.join(directory, 'README.md'), encoding='utf-8') as f:
-        long_description = f.read()
-else:
-    with open(os.path.join(directory, 'README.md')) as f:
-        long_description = f.read()
-
 
 setuptools.setup(
     name='script',
@@ -23,10 +12,7 @@ setuptools.setup(
     url="https://github.com/anastasivynohradova/geo419/",
     packages=setuptools.find_packages(),
     install_requires=[req for req in requirements if req[:2] != "# "],
-    zip_safe=False,
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    include_package_data=True
+
 )
 
 from sphinx.setup_command import BuildDoc
@@ -43,7 +29,7 @@ setup(
     # these are optional and override conf.py settings
     command_options={
         'build_sphinx': {
-            'project': ('setup.py', name),
+            'project': ('setup.py', 'script.py'),
             'version': ('setup.py', version),
             'release': ('setup.py', release),
             'source_dir': ('setup.py', 'doc')}},
