@@ -74,7 +74,7 @@ def tifcheck():
     # für nach erstmaliger Ausführung des Programms wird nochmal überprüft ob das Enpacken funktioniert hat
     for file in os.listdir():
         if file.endswith(".tif"):
-            print(os.path.join("GEO_ex_folder", file),"sucessfully unpacked")
+            print(os.path.join("GEO_ex_folder", file))
         elif not os.path.isfile('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'):
             print('tif does not exist, please restart the programm')
 
