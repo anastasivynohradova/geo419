@@ -75,7 +75,7 @@ def script():
         nach einer Tif Datei gesucht und gegenbenfalls der Pfad mit dem Namen der Tif Datei ausgegeben wird.
         :return: none
         """
-        # für nach erstmaliger Ausführung des Programms wird nochmal überprüft ob das Enpacken funktioniert hat
+        # für nach erstmaliger Ausführung des Programms wird nochmal überprüft ob das Entpacken funktioniert hat
         for file in os.listdir():
             if file.endswith(".tif"):
                 print(os.path.join("GEO_ex_folder", file),"sucessfully unpacked")
