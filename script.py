@@ -154,6 +154,8 @@ def image_visualize():
     # das erste Band der Datei kann mit .read(1) gelesen werden
     image_hidden = ax.imshow(new_image.read(1),
                              cmap='gray')
+    # Formatierung von y Achselabels
+    ax.get_yaxis().get_major_formatter().set_scientific(False)
     # Plotten auf der gleichen Achse mit rasterio.plot.show
     show(new_image.read(1),
             transform=new_image.transform,
