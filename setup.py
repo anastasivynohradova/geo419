@@ -1,7 +1,9 @@
+# Importieren das Packet
 import setuptools
 # Öffnen der Requirements Datei
 with open('requirements.txt', "r") as f:
     requirements = f.readlines()
+
 #Installieren der Packete aus dem requirements file und Metadaten des Projektes
 setuptools.setup(
     name='script',
