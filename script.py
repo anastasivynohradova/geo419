@@ -15,9 +15,7 @@ from matplotlib import pyplot as plt
 from skimage import exposure
 from osgeo import gdal
 
-
 print("Welcome!")
-
 
 
 def tiff_download():
@@ -139,8 +137,6 @@ def image_save():
     output_image = driver.CreateCopy("logscaled.tif", image, 1)
     # Kopieren des numpy Arrays in die neue raster Datei
     output_image.GetRasterBand(1).WriteArray(image_int)
-    #output_image.FlushCache()
-    del output_image
 
 # Definierung einer Funktion zur Bildvisualisierung
 def image_visualize():
@@ -156,18 +152,18 @@ def image_visualize():
     fig, ax = plt.subplots(figsize=(7, 4))
     # imshow verwenden um den Colorbar zuordnen zu können
     # das erste Band der Datei kann mit .read(1) gelesen werden
-    #ax.plot(range(400000, 600000, 50000), range(517500, 535000, 2500))
-    ax.ticklabel_format(useOffset=False)
     image_hidden = ax.imshow(new_image.read(1),
-                             cmap='Greys_r')
-    fig.legend(title='dB', loc='upper right', bbox_to_anchor=(0.83, 0.98), frameon=False)
+                             cmap='gray')
+    # Formatierung von y Achselabels um wissenschaftliche Notation zu vermeiden
+    ax.get_yaxis().get_major_formatter().set_scientific(False)
     # Plotten auf der gleichen Achse mit rasterio.plot.show
     show(new_image.read(1),
             transform=new_image.transform,
             ax=ax,
-            cmap='Greys_r')
+            cmap='gray')
     # Colorbar unter Verwendung des jetzt ausgeblendeten Bildes hinzufügen
-    fig.colorbar(image_hidden, ax=ax)
+    cbar = fig.colorbar(image_hidden, ax=ax)
+    cbar.set_label('dB')
     # Darstellung des Bildes mit Colorbar in einem Fenster
     plt.show()
 
@@ -179,6 +175,4 @@ if __name__ == "__main__":
     image_int = rescale_intensity(log_image)
     image_save()
     image_visualize()
-
-
 

@@ -1,4 +1,3 @@
-
 import setuptools
 # Öffnen der Requirements Datei
 with open('requirements.txt', "r") as f:
@@ -15,4 +14,3 @@ setuptools.setup(
     install_requires=[req for req in requirements if req[:2] != "# "],
 
 )
-
