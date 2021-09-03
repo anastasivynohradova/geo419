@@ -7,7 +7,7 @@ Created on Fri Apr 30 21:45:52 2021
 # import packages
 import os
 import requests
-import zipfile36 as zipfile
+import zipfile as zipfile
 import rasterio
 from rasterio.plot import show
 import numpy as np
@@ -18,7 +18,7 @@ from osgeo import gdal
 print("Welcome!")
 
 
-def tiff_download():
+def tiff_download(url, path, filename):
     """
     Die Funktion tiff_download erstellt unabhängig vom Betriebssystem einen Ordner "GEO_ex_folder" in dem alle
     weiteren Teile des Programmes ausgeführt werden. Außerdem wird bei jedem Schritt überprüft ob schon die
@@ -29,74 +29,78 @@ def tiff_download():
     """
     # Erstelle Ordner
     # Prüft ob der Ordner bereits existiert
-    if os.path.exists('GEO_ex_folder'):
+    if os.path.exists(path):
         # Falls der Order existiert wird das mitgeteilt
-        print("Folder exists")
+        print('Folder exists')
     else:
         # Wenn kein Ornder exitiert wird einer angelegt und mitgeteilt
-        os.makedirs('GEO_ex_folder')
+        os.makedirs(path)
         print('A new folder has been created')
 
     # alle zukünftigen Operationen werden in diesem Ordner durchgeführt
-    os.chdir('GEO_ex_folder')
-
+    os.chdir(path)
+    
+    zname = os.path.join(path, url.split('/')[-1])
+    
     # Es wird geprüft ob der Datensatz existiert und mitgeteilt falls er vorhanden ist
-    if os.path.isfile('GEO419_Testdatensatz'):
-        print("Zip file File exists")
+    if os.path.isfile(zname):
+        print('Zip file exists')
     # Falls der Datensatz nicht vorhanden ist wird der Download gestartet
-    elif not os.path.isfile('GEO419_Testdatensatz'):
+    else:
         print('Download starts')
-        zipurl = 'https://upload.uni-jena.de/data/60faad3254c462.96067488/GEO419_Testdatensatz.zip'
-        resp = requests.get(zipurl)
+        resp = requests.get(url)
     # abspeichern des Zip-files unter neuem Namen
-        zname = "GEO419_Testdatensatz"
-        zfile = open(zname, 'wb')
-        zfile.write(resp.content)
-        zfile.close()
+        with open(zname, 'wb') as zfile:
+            zfile.write(resp.content)
     # Prüfen ob ein Zip file vorhanden ist
-    if os.path.isfile('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'):
+    if os.path.isfile(filename):
         print("Tif file exists")
     # Entpacken der Zip Datei
-    elif not os.path.isfile('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'):
+    else:
         print('start unpacking')
-        zfile = zipfile.ZipFile('GEO419_Testdatensatz')
+        zfile = zipfile.ZipFile(zname)
         zfile.extractall()
+        zfile.close()
         print('Zip unpacked')
 
-def tifcheck():
+
+def tifcheck(path, filename):
     """
     Diese Funktion tifcheck prüft ob das Entpacken der Zip -Datei funktioniert hat, indem in dem Ordner
     nach einer Tif Datei gesucht und gegenbenfalls der Pfad mit dem Namen der Tif Datei ausgegeben wird.
     :return: none
     """
     # für nach erstmaliger Ausführung des Programms wird nochmal überprüft ob das Enpacken funktioniert hat
-    for file in os.listdir():
-        if file.endswith(".tif"):
-            print(os.path.join("GEO_ex_folder", file))
-        elif not os.path.isfile('S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'):
-            print('tif does not exist, please restart the programm')
+    files = os.listdir(path)
+    if filename in files:
+        print(os.path.join(path, filename))
+    else:
+        print('tif does not exist, please restart the programm')
 
 
 # Definierung einer Funktion zum Öffnen des Bildes
-def image_read():
+def image_read(path, filename):
     """
     Die Funktion image_read öffnet die entpackte Tif-Datei und gibt das Bild zurück
     :return: floats
     """
-    image = gdal.Open("S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif", gdal.GA_Update)
-    return image
+    image = gdal.Open(os.path.join(path, filename), gdal.GA_ReadOnly)
+    image_array = image.GetRasterBand(1).ReadAsArray()
+    image = None  # close the dataset
+    return image_array
+
 
 # Logarithmische Skalierung des Bildes
-def log_scale(image):
+def log_scale(path, filename):
     """
     Die Funktion log_scale verlangt als Eingabeparameter das vorher geöffnete Bild, wandelt dieses in einen numpy
     array um, skaliert alle Werte größer als Null logarithmisch und weißt allen Null Werten die Bezeichnung NaN
     (not a number) zu.
-    :param image: floats
+    :param image: str
     :return: 2D array of floats
     """
     # lesen das Bild als numpy Array
-    image_array = image.GetRasterBand(1).ReadAsArray()
+    image_array = image_read(path, filename)
     # logarithmisch skalieren die Werte >0
     image_array[image_array != 0] = (np.log10(image_array[image_array > 0])) * 10
     # 0 Werte als nAn darstellen
@@ -123,23 +127,30 @@ def rescale_intensity(log_image):
                                         out_range=(min, max))
     return scaled
 
+
 # Definierung einer Funktion zum Screiben des neu berechneten Array als raster Bild
-def image_save():
+def image_save(array, path, filename, outname):
     """
     Die Funktion image_save kreiert zunächst eine leere Tif Datei, dann wird eine Kopie des original Rasters
     angelegt und die neu skalierte Datei in das Raster hineinkopiert. Schlussendlich das wird das
     Raster wieder gelöscht.
     :return: None
     """
+    image = gdal.Open(os.path.join(path, filename), gdal.GA_ReadOnly)
     # Erstellen der neuen Datei im tiff Format
     driver = gdal.GetDriverByName('Gtiff')
     # Kopieren der Geoinformation vom input Bild in die neue raster Datei
-    output_image = driver.CreateCopy("logscaled.tif", image, 1)
+    output_image = driver.CreateCopy(os.path.join(path, outname), image, 1)
     # Kopieren des numpy Arrays in die neue raster Datei
-    output_image.GetRasterBand(1).WriteArray(image_int)
+    output_image.GetRasterBand(1).WriteArray(array)
+    # leere temporären Speicher und schließe alle Dateien
+    output_image.FlushCache()
+    output_image = None
+    image = None
+
 
 # Definierung einer Funktion zur Bildvisualisierung
-def image_visualize():
+def image_visualize(path, filename):
     """
     Die Funktion image_visualize visualisiert das skalierte Bild indem es erst eingelesen wird und zunächst die
     größe der Achsen festegelgt wird. Weiter wird die Legende, die Farbpallette und die Achsen definiert und
@@ -147,7 +158,7 @@ def image_visualize():
     :return: None
     """
     # Öffnen des neu berechneten Bildes mit dem Packet rasterio
-    new_image = rasterio.open("..\GEO_ex_folder\logscaled.tif")
+    new_image = rasterio.open(os.path.join(path, filename))
     # Erstellen einer Figur und eines Subplots
     fig, ax = plt.subplots(figsize=(7, 4))
     # imshow verwenden um den Colorbar zuordnen zu können
@@ -157,22 +168,31 @@ def image_visualize():
     # Formatierung von y Achselabels um wissenschaftliche Notation zu vermeiden
     ax.get_yaxis().get_major_formatter().set_scientific(False)
     # Plotten auf der gleichen Achse mit rasterio.plot.show
-    show(new_image.read(1),
-            transform=new_image.transform,
-            ax=ax,
-            cmap='gray')
+    # show(new_image.read(1),
+    #         transform=new_image.transform,
+    #         ax=ax,
+    #         cmap='gray')
     # Colorbar unter Verwendung des jetzt ausgeblendeten Bildes hinzufügen
     cbar = fig.colorbar(image_hidden, ax=ax)
     cbar.set_label('dB')
     # Darstellung des Bildes mit Colorbar in einem Fenster
     plt.show()
 
-if __name__ == "__main__":
-    tiff_download()
-    tifcheck()
-    image = image_read()
-    log_image = log_scale(image)
-    image_int = rescale_intensity(log_image)
-    image_save()
-    image_visualize()
 
+if __name__ == '__main__':
+    url = 'https://upload.uni-jena.de/data/60faad3254c462.96067488/GEO419_Testdatensatz.zip'
+    filename = 'S1B__IW___A_20180828T171447_VV_NR_Orb_Cal_ML_TF_TC.tif'
+    path = os.path.join(os.getcwd(), 'GEO_ex_folder')
+    outname = 'log.tif'
+    
+    tiff_download(url=url, path=path, filename=filename)
+    tifcheck(path=path, filename=filename)
+    if not os.path.isfile(outname):
+        print('log scaling')
+        log_image = log_scale(path=path, filename=filename)
+        print('image stretching')
+        image_int = rescale_intensity(log_image)
+        image_save(array=image_int, path=path, filename=filename, outname=outname)
+    else:
+        pass
+    image_visualize(path=path, filename=outname)
