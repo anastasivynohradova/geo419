@@ -36,7 +36,7 @@ def tiff_download(url, path, filename):
         # Wenn kein Ornder exitiert wird einer angelegt und mitgeteilt
         os.makedirs(path)
         print('A new folder has been created')
-
+    
     # alle zukünftigen Operationen werden in diesem Ordner durchgeführt
     os.chdir(path)
     
@@ -49,7 +49,7 @@ def tiff_download(url, path, filename):
     else:
         print('Download starts')
         resp = requests.get(url)
-    # abspeichern des Zip-files unter neuem Namen
+        # abspeichern des Zip-files unter neuem Namen
         with open(zname, 'wb') as zfile:
             zfile.write(resp.content)
     # Prüfen ob ein Zip file vorhanden ist
@@ -106,6 +106,7 @@ def log_scale(path, filename):
     # 0 Werte als nAn darstellen
     image_array[image_array == 0] = np.nan
     return image_array
+
 
 # Definierung einer Funktion zur weiteren Skalierung der Daten, bzw. Kontraststreckung
 def rescale_intensity(log_image):
@@ -168,10 +169,10 @@ def image_visualize(path, filename):
     # Formatierung von y Achselabels um wissenschaftliche Notation zu vermeiden
     ax.get_yaxis().get_major_formatter().set_scientific(False)
     # Plotten auf der gleichen Achse mit rasterio.plot.show
-    # show(new_image.read(1),
-    #         transform=new_image.transform,
-    #         ax=ax,
-    #         cmap='gray')
+    show(new_image.read(1),
+         transform=new_image.transform,
+         ax=ax,
+         cmap='gray')
     # Colorbar unter Verwendung des jetzt ausgeblendeten Bildes hinzufügen
     cbar = fig.colorbar(image_hidden, ax=ax)
     cbar.set_label('dB')
